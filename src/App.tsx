@@ -1,38 +1,76 @@
 import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
 import "./App.css";
 import { useOnMount } from "./hooks/useOnMount";
+import { useArrayState } from "./hooks/useArrayState";
+
+type Todo = {
+  title: string;
+  id: number;
+};
+
+const fetchTodos = () =>
+  Promise.resolve([
+    { title: "todo 1", id: 1 },
+    { title: "todo 2", id: 2 },
+  ]);
 
 function App() {
   const [count, setCount] = useState(0);
+  const [titleInput, setTitleInput] = useState("");
+  const {
+    arr: todos,
+    deleteBy: deleteTodoBy,
+    push: pushTodo,
+    setArr: setTodos,
+  } = useArrayState<Todo>([]);
 
   useOnMount(() => {
-    alert("Mounted");
+    alert("mounted");
+    fetchTodos().then(setTodos);
   });
 
   return (
     <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
       <div className="card">
+        <ol>
+          {todos.map((todo) => (
+            <li key={todo.id}>
+              {todo.title}
+              {"   "}{" "}
+              <button onClick={() => deleteTodoBy((t) => t.id === todo.id)}>
+                X
+              </button>
+            </li>
+          ))}
+        </ol>
         <button onClick={() => setCount((count) => count + 1)}>
           count is {count}
         </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            console.log({
+              id: Date.now(),
+              title: titleInput,
+            });
+            pushTodo({
+              id: Date.now(),
+              title: titleInput,
+            });
+            setTitleInput("");
+          }}
+        >
+          <input
+            type="text"
+            placeholder="new title"
+            onChange={(e) => {
+              setTitleInput(e.target.value);
+            }}
+            value={titleInput}
+          />
+          <input type="submit" value={"add todo"} />
+        </form>
       </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
     </>
   );
 }
